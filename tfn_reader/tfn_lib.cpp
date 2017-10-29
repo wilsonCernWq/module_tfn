@@ -19,7 +19,7 @@
 #include "tfn_lib.h"
 
 using namespace ospcommon;
-using namespace tfn;
+using namespace tfn_reader;
 
 // The magic number is 'OSTF' in ASCII
 const static uint32_t MAGIC_NUMBER = 0x4f535446;

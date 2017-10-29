@@ -14,30 +14,22 @@
 ## limitations under the License.                                           ##
 ## ======================================================================== ##
 
-OPTION(OSPRAY_MODULE_TFN "Build 2D transfer function widget for OSPRay" ON)
-OPTION(OSPRAY_MODULE_PARAVIEW_TFN_CVT
-  "Build ParaView to OSPRay viewer transfer function converter"
-  ON
-)
-OPTION(OSPRAY_MODULE_VISIT_TFN_CVT
-  "Build VisIt to OSPRay viewer transfer function converter"
-  ON
+include_directories(
+  ${CMAKE_CURRENT_LIST_DIR}/../../../../apps/exampleViewer/common/gl3w
+  ${CMAKE_CURRENT_LIST_DIR}/../../../../apps/exampleViewer/common/imgui
+  ${CMAKE_CURRENT_LIST_DIR}/../../../../apps/exampleViewer/widgets
+  ${CMAKE_CURRENT_LIST_DIR}/../../../../apps/exampleViewer
+  ${CMAKE_CURRENT_LIST_DIR}/../../
+  ${GLFW_INCLUDE_DIRS}
 )
 
-IF(OSPRAY_MODULE_TFN)
-  
-  OSPRAY_CREATE_LIBRARY(ospray_module_tfn
-    tfn_lib.cpp
-    LINK
-    ospray_common)
-
-  # Paraview Converter
-  IF (OSPRAY_MODULE_PARAVIEW_TFN_CVT)
-    OSPRAY_CREATE_APPLICATION(osp_tfn_cvt_paraview
-      convertParaViewTfcn.cpp
-      jsoncpp.cpp
-      LINK
-      ospray_module_tfn)
-  ENDIF()
-  
-ENDIF(OSPRAY_MODULE_TFN)
+ospray_create_library(ospray_module_tfn_widget  
+  TransferFunctionWidget.cpp
+LINK
+  ospray
+  ospray_common
+  ospray_imgui
+  ospray_imgui_util_sg
+  ospray_module_tfn
+  ${GLFW_LIBRARY}
+)
