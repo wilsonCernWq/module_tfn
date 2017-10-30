@@ -71,6 +71,7 @@ namespace ospray {
         ColorPoint(const float cp, const float cr, const float cg, const float cb):
 	  p(cp), r(cr), g(cg), b(cb){}
         ColorPoint(const ColorPoint& c) : p(c.p), r(c.r), g(c.g), b(c.b){}
+	// This function gives Hex color for ImGui
 	unsigned long GetHex() {
 	  return (0xff << 24) +
 	    ((static_cast<uint8_t>(b * 255.f) & 0xff) << 16) +
