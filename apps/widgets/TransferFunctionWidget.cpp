@@ -245,17 +245,22 @@ void ospray::tfn_widget::TransferFunctionWidget::drawUi()
 	}	
       	tfn_changed = true;
       }
-      // // draw picker
-      // ImGui::SetCursorScreenPos(ImVec2(pos.x - color_len, pos.y + 1.5f * color_len));
-      // ImVec4 picked_color = ImColor(tfn_c[i].r, tfn_c[i].g, tfn_c[i].b, 1.f);
-      // if (ImGui::ColorEdit4(("ColorPicker"+std::to_string(i)).c_str(),
-      // 			    (float*)&picked_color))
-      // {
-      // 	tfn_c[i].r = picked_color.x / 255.f;
-      // 	tfn_c[i].g = picked_color.y / 255.f;
-      // 	tfn_c[i].b = picked_color.z / 255.f;
-      // 	tfn_changed = true;
-      // }
+      // draw picker
+      ImGui::SetCursorScreenPos(ImVec2(pos.x - color_len, pos.y + 1.5f * color_len));
+      ImVec4 picked_color = ImColor(tfn_c[i].r, tfn_c[i].g, tfn_c[i].b, 1.f);
+      if (ImGui::ColorEdit4(("ColorPicker"+std::to_string(i)).c_str(),
+      			    (float*)&picked_color,
+			    ImGuiColorEditFlags_NoAlpha |
+			    ImGuiColorEditFlags_NoInputs |
+			    ImGuiColorEditFlags_NoLabel |
+			    ImGuiColorEditFlags_AlphaPreview |
+			    ImGuiColorEditFlags_NoOptions))
+      {
+      	tfn_c[i].r = picked_color.x;
+      	tfn_c[i].g = picked_color.y;
+      	tfn_c[i].b = picked_color.z;
+      	tfn_changed = true;
+      }
       ImGui::SetCursorScreenPos(ImVec2(canvas_x, canvas_y));
     }
   }    
