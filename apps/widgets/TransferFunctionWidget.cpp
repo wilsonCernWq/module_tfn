@@ -125,8 +125,7 @@ void ospray::tfn_widget::TransferFunctionWidget::drawUi()
   std::transform(tfn_names.begin(), tfn_names.end(), names.begin(),
 		 [](const std::string &t) { return t.c_str(); });
   ImGui::ListBox("color maps", &tfn_selection, names.data(), names.size());
-  ImGui::InputText("",
-		   tfn_text_buffer.data(), tfn_text_buffer.size() - 1);
+  ImGui::InputText("", tfn_text_buffer.data(), tfn_text_buffer.size() - 1);
   ImGui::SameLine();
   if (ImGui::Button("load new file")) {
     try {
@@ -142,6 +141,7 @@ void ospray::tfn_widget::TransferFunctionWidget::drawUi()
 	<< std::endl;
     }
   }
+  // TODO: save function is not implemented
   // if (ImGui::Button("save")) { save(tfn_text_buffer.data()); }
   //------------ Transfer Function -------------------
   // style
