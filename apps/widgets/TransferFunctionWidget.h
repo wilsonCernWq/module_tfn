@@ -97,13 +97,16 @@ namespace ospray {
       };
 
     private:
-
+      // The list of all loaded transfer functions
+      std::vector<std::vector<ColorPoint>>   tfn_c_list;
+      std::vector<std::vector<OpacityPoint>> tfn_o_list;
+      
       // The color control point list
-      std::vector<ColorPoint>   tfn_c;
+      std::vector<ColorPoint>*   tfn_c;
       // The opacity control point list
-      std::vector<OpacityPoint> tfn_o;
+      std::vector<OpacityPoint>* tfn_o;
 
-      // interpolate trasnfer function
+      // interpolated trasnfer function size
       int tfn_w = 256;
       int tfn_h = 1;
       
@@ -113,8 +116,6 @@ namespace ospray {
       std::vector<tfn_reader::TransferFunction> tfn_readers;
       // The selected transfer function being shown
       int  tfn_selection;
-      // Mode to delete control points
-      bool tfn_delete = 0;
       
       /* // Lines for RGBA transfer function controls */
       /* std::array<Line, 4> rgbaLines; */
@@ -141,6 +142,7 @@ namespace ospray {
       /* // Load up the preset color maps */
       /* void loadColorMapPresets(); */
       void LoadDefaultMap();
+      void SetTFNSelection(int);
     };
   };
 }// ::ospray
