@@ -132,6 +132,7 @@ void ospray::tfn_widget::TransferFunctionWidget::drawUi()
     try {
       std::string s = tfn_text_buffer.data();
       s.erase(s.find_last_not_of(" \n\r\t")+1);
+      s.erase(0,s.find_first_not_of(" \n\r\t"));
       load(s.c_str());
     } catch (const std::runtime_error& error) {
       std::cerr
