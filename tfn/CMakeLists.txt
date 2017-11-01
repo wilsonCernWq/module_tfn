@@ -26,7 +26,7 @@ OPTION(OSPRAY_MODULE_VISIT_TFN_CVT
 IF(OSPRAY_MODULE_TFN)
   
   OSPRAY_CREATE_LIBRARY(ospray_module_tfn
-    tfn_lib.cpp
+    TransferFunctionModule.cpp
     LINK
     ospray_common)
 

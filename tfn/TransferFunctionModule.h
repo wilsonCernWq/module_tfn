@@ -46,7 +46,7 @@
  * [ospcommon::vec2f...]: data value, opacity value pairs
  */
 
-namespace tfn_reader {
+namespace tfn {
   struct OSPTFNLIB_INTERFACE TransferFunction {
     std::string name;
     std::vector<ospcommon::vec3f> rgbValues;

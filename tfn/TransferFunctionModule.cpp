@@ -16,10 +16,10 @@
 
 #include <exception>
 #include <fstream>
-#include "tfn_lib.h"
+#include "TransferFunctionModule.h"
 
 using namespace ospcommon;
-using namespace tfn_reader;
+using namespace tfn;
 
 // The magic number is 'OSTF' in ASCII
 const static uint32_t MAGIC_NUMBER = 0x4f535446;

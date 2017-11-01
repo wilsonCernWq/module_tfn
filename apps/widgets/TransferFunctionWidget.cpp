@@ -12,7 +12,7 @@
 #include "ospray/ospray_cpp/TransferFunction.h"
 #include "common/sg/common/Data.h"
 
-#include "tfn_reader/tfn_lib.h"
+#include "tfn/TransferFunctionModule.h"
 #include "TransferFunctionWidget.h"
 
 using namespace ospcommon;
@@ -523,7 +523,7 @@ void ospray::tfn_widget::TransferFunctionWidget::render()
 
 void ospray::tfn_widget::TransferFunctionWidget::load(const ospcommon::FileName &fileName)
 {
-  tfn_reader::TransferFunction loaded(fileName);
+  tfn::TransferFunction loaded(fileName);
   tfn_readers.emplace_back(fileName);
   const auto tfn_new = tfn_readers.back();
   const int c_size = tfn_new.rgbValues.size();

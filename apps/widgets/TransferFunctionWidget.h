@@ -14,8 +14,8 @@
 
 #include "ospray/ospray_cpp/TransferFunction.h"
 #include "common/sg/transferFunction/TransferFunction.h"
-#include "tfn_reader/tfn_lib.h"
 #include "widgets/Imgui3dExport.h"
+#include "tfn/TransferFunctionModule.h"
 
 namespace ospray {
   namespace tfn_widget {
@@ -109,13 +109,13 @@ namespace ospray {
       struct TFN {
 	std::vector<ColorPoint>   colors;
 	std::vector<OpacityPoint> opacity;
-	tfn_reader::TransferFunction reader;
+	tfn::TransferFunction reader;
       };
 
     private:
       // The list of avaliable transfer functions, both built-in and loaded
       // std::vector<TFN>  tfn_list;
-      std::vector<tfn_reader::TransferFunction> tfn_readers;
+      std::vector<tfn::TransferFunction> tfn_readers;
       // Current TFN
       std::vector<bool> tfn_editable;
       std::vector<std::vector<ColorPoint>>   tfn_c_list;
