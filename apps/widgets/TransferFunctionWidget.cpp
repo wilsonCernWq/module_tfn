@@ -53,8 +53,8 @@ void ospray::tfn_widget::TransferFunctionWidget::LoadDefaultMap()
   tfn_o_list.back()[2] = OpacityPoint(0.50f, 0.50f);
   tfn_o_list.back()[3] = OpacityPoint(0.75f, 0.75f);
   tfn_o_list.back()[4] = OpacityPoint(1.00f, 1.00f);
-  tfn_editable.emplace_back(true);
-  tfn_names.emplace_back("Jet");
+  tfn_editable.push_back(true);
+  tfn_names.push_back("Jet");
 };
 
 void ospray::tfn_widget::TransferFunctionWidget::SetTFNSelection(int selection) {
@@ -533,8 +533,8 @@ void ospray::tfn_widget::TransferFunctionWidget::load(const ospcommon::FileName 
   //tfn_o_list.emplace_back(o_size);
   tfn_c_list.emplace_back(c_size);
   tfn_o_list.emplace_back(o_size);
-  tfn_editable.emplace_back(false); // TODO we dont want to edit loaded TFN
-  tfn_names.emplace_back(tfn_new.name);
+  tfn_editable.push_back(false); // TODO we dont want to edit loaded TFN
+  tfn_names.push_back(tfn_new.name);
   SetTFNSelection(tfn_names.size()-1); // set the loaded function as current
   //----- metadata ----
   //----- color ---
