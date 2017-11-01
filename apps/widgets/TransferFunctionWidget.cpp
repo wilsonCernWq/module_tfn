@@ -57,8 +57,8 @@ void ospray::tfn_widget::TransferFunctionWidget::LoadDefaultMap()
 
 void ospray::tfn_widget::TransferFunctionWidget::SetTFNSelection(int selection) {
   tfn_selection = selection;
-  tfn_c = &tfn_c_list[selection];
-  tfn_o = &tfn_o_list[selection];
+  tfn_c = &(tfn_c_list[selection]);
+  tfn_o = &(tfn_o_list[selection]);
 }
 
 ospray::tfn_widget::TransferFunctionWidget::~TransferFunctionWidget()
@@ -72,7 +72,7 @@ ospray::tfn_widget::TransferFunctionWidget::TransferFunctionWidget
   tfn_selection(JET),
   tfn_changed(true),
   tfn_palette(0),
-  text_buffer(512, '\0')
+  tfn_text_buffer(512, '\0')
 {
   LoadDefaultMap();
   SetTFNSelection(tfn_selection);
@@ -87,7 +87,7 @@ ospray::tfn_widget::TransferFunctionWidget::TransferFunctionWidget
   tfn_selection(t.tfn_selection),
   tfn_changed(true),
   tfn_palette(0),
-  text_buffer(512, '\0')
+  tfn_text_buffer(512, '\0')
 {
   SetTFNSelection(tfn_selection);
 }
@@ -112,9 +112,9 @@ void ospray::tfn_widget::TransferFunctionWidget::drawUi()
   if (!ImGui::Begin("Transfer Function Widget")) { ImGui::End(); return; }
   ImGui::Text("1D Transfer Function");
   ImGui::Text("Left click and drag to move control points\n"
-	      "Left click on empty area to add control points\n"
+	      "Left double click on empty area to add control points\n"
 	      "Right double click on control points to remove it\n"
-	      "Right click on color preview can open the color editor\n");
+	      "Left click on color preview can open the color editor\n");
   // radio paremeters
   ImGui::Separator();
   //------------ Transfer Function -------------------
@@ -257,7 +257,7 @@ void ospray::tfn_widget::TransferFunctionWidget::drawUi()
   ImGui::SetCursorScreenPos(ImVec2(canvas_x + margin, canvas_y - margin));
   ImGui::InvisibleButton("tfn_palette", ImVec2(width, 2.5 * color_len));
   // add color point
-  if (ImGui::IsMouseClicked(0) && ImGui::IsItemHovered())
+  if (ImGui::IsMouseDoubleClicked(0) && ImGui::IsItemHovered())
   {
     const float p = clamp((mouse_x - canvas_x - margin - scroll_x) / (float) width,
 			  0.f, 1.f);
@@ -277,7 +277,7 @@ void ospray::tfn_widget::TransferFunctionWidget::drawUi()
   ImGui::SetCursorScreenPos(ImVec2(canvas_x + margin, canvas_y - height - margin));
   ImGui::InvisibleButton("tfn_palette", ImVec2(width,height));
   // add opacity point
-  if (ImGui::IsMouseClicked(0) && ImGui::IsItemHovered())
+  if (ImGui::IsMouseDoubleClicked(0) && ImGui::IsItemHovered())
   {
     const float x = clamp((mouse_x - canvas_x - margin - scroll_x) / (float) width,
 			  0.f, 1.f);
@@ -294,15 +294,11 @@ void ospray::tfn_widget::TransferFunctionWidget::drawUi()
   canvas_avail_y -= 4.f * color_len + margin;
   //------------ Transfer Function -------------------
   ImGui::SetCursorScreenPos(ImVec2(canvas_x, canvas_y));
-  //ImGui::InputText("filename", textBuffer.data(), textBuffer.size() - 1);
-
-  if (ImGui::Button("Save")){
-    //save(textBuffer.data());
-  }
+  ImGui::InputText("Transfer Function Filename",
+		   tfn_text_buffer.data(), tfn_text_buffer.size() - 1);
+  if (ImGui::Button("Save")) { save(tfn_text_buffer.data()); }
   ImGui::SameLine();
-  if (ImGui::Button("Load")){
-    //load(textBuffer.data());
-  }
+  if (ImGui::Button("Load")) { load(tfn_text_buffer.data()); }
   ImGui::End();
   
   // if (ImGui::Begin("Transfer Function (Qi's version)")){
@@ -407,7 +403,6 @@ void ospray::tfn_widget::TransferFunctionWidget::drawUi()
 
 void RenderTFNTexture(GLuint& tex, int width, int height)
 {
-  printf("init\n");
   GLint prevBinding = 0;
   glGetIntegerv(GL_TEXTURE_BINDING_2D, &prevBinding);
   glGenTextures(1, &tex);
@@ -508,7 +503,66 @@ void ospray::tfn_widget::TransferFunctionWidget::load(const ospcommon::FileName 
 {
   tfn_reader::TransferFunction loaded(fileName);
   tfn_readers.emplace_back(fileName);
-  tfn_selection = tfn_readers.size() - 1; // set the loaded function as current
+  const auto tfn_new = tfn_readers.back();
+  const int c_size = tfn_new.rgbValues.size();
+  const int o_size = tfn_new.opacityValues.size();  
+  // load data
+  //tfn_c_list.emplace_back(0);
+  //tfn_o_list.emplace_back(o_size);
+  tfn_c_list.emplace_back(c_size);
+  tfn_o_list.emplace_back(o_size);
+  SetTFNSelection(tfn_c_list.size()-1); // set the loaded function as current
+  //----- color ---
+  if (c_size < 2) {
+    std::runtime_error("transfer function contains too few color points");
+  }
+  // (*tfn_c).emplace_back(0.f,
+  // 			tfn_new.rgbValues[0].x,
+  // 			tfn_new.rgbValues[0].y,
+  // 			tfn_new.rgbValues[0].z);
+  // (*tfn_c).emplace_back(1.f,
+  // 			tfn_new.rgbValues[c_size-1].x,
+  // 			tfn_new.rgbValues[c_size-1].y,
+  // 			tfn_new.rgbValues[c_size-1].z);
+  // float pp = 0.f;
+  // float pr = (*tfn_c)[0].r, pkr = ((*tfn_c)[1].r - pr);
+  // float pg = (*tfn_c)[0].g, pkg = ((*tfn_c)[1].g - pg);
+  // float pb = (*tfn_c)[0].b, pkb = ((*tfn_c)[1].b - pb);
+  // const float c_step = 1.f / (c_size-1);
+  // for (int i = 1; i < (c_size-1); ++i) {
+  //   const float p = static_cast<float>(i) * c_step;
+  //   const float r = tfn_new.rgbValues[i].x;
+  //   const float g = tfn_new.rgbValues[i].y;
+  //   const float b = tfn_new.rgbValues[i].z;
+  //   const float kr = (r - pr) / (p - pp);
+  //   const float kg = (g - pg) / (p - pp);
+  //   const float kb = (b - pb) / (p - pp);
+  //   if (std::abs(kr-pkr) > 0.01f ||
+  // 	std::abs(kg-pkg) > 0.01f ||
+  // 	std::abs(kb-pkb) > 0.01f)
+  //   {
+  //     (*tfn_c).emplace(tfn_c->end()-1, p, r, g, b);
+  //     pp = p;
+  //     pr = r; pg = g; pb = b;
+  //     pkr = kr; pkg = kg; pkb = kb;
+  //   }    
+  // }
+  const float c_step = 1.f / (c_size-1);
+  for (int i = 0; i < c_size; ++i) {
+    const float p = static_cast<float>(i) * c_step;
+    (*tfn_c)[i].p = p;
+    (*tfn_c)[i].r = tfn_new.rgbValues[i].x;
+    (*tfn_c)[i].g = tfn_new.rgbValues[i].y;
+    (*tfn_c)[i].b = tfn_new.rgbValues[i].z;
+  }  
+  if (o_size < 2) {
+    std::runtime_error("transfer function contains too few opacity points");
+  }
+  for (int i = 0; i < o_size; ++i) {
+    (*tfn_o)[i].p = tfn_new.opacityValues[i].x;
+    (*tfn_o)[i].a = tfn_new.opacityValues[i].y;
+  }
+  tfn_changed = true;
 }
 
 void ospray::tfn_widget::TransferFunctionWidget::save(const ospcommon::FileName &fileName)

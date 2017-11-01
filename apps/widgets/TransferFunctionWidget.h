@@ -63,14 +63,28 @@ namespace ospray {
 
     private:
 
+      // The indices of the transfer function color presets available
+      enum ColorMap {
+	JET,
+	ICE_FIRE,
+	COOL_WARM,
+	BLUE_RED,
+	GRAYSCALE,
+      };
+      
       // This defines the control point class
       struct ColorPoint {
 	float p; // location of the control point [0, 1]
 	float r, g, b;
-	ColorPoint() = default;
+	ColorPoint() {};
         ColorPoint(const float cp, const float cr, const float cg, const float cb):
 	  p(cp), r(cr), g(cg), b(cb){}
-        ColorPoint(const ColorPoint& c) : p(c.p), r(c.r), g(c.g), b(c.b){}
+        ColorPoint(const ColorPoint& c) : p(c.p), r(c.r), g(c.g), b(c.b) {}
+	ColorPoint& operator=(const ColorPoint &c) {
+	  if (this == &c) { return *this; }
+	  p = c.p; r = c.r; g = c.g; b = c.b;
+	  return *this;
+	}
 	// This function gives Hex color for ImGui
 	unsigned long GetHex() {
 	  return (0xff << 24) +
@@ -80,30 +94,33 @@ namespace ospray {
 	}
       };
       struct OpacityPoint {
-	OpacityPoint() = default;
+	OpacityPoint() {};
         OpacityPoint(const float cp, const float ca) : p(cp), a(ca){}
-        OpacityPoint(const OpacityPoint& c) : p(c.p), a(c.a){}
+        OpacityPoint(const OpacityPoint& c) : p(c.p), a(c.a) {}
+	OpacityPoint& operator=(const OpacityPoint &c) {
+	  if (this == &c) { return *this; }
+	  p = c.p; a = c.a;
+	  return *this;
+	}
 	float p; // location of the control point [0, 1]
 	float a;
       };
 
-      // The indices of the transfer function color presets available
-      enum ColorMap {
-	JET,
-	ICE_FIRE,
-	COOL_WARM,
-	BLUE_RED,
-	GRAYSCALE,
+      struct TFN {
+	std::vector<ColorPoint>   colors;
+	std::vector<OpacityPoint> opacity;
+	tfn_reader::TransferFunction reader;
       };
 
     private:
-      // The list of all loaded transfer functions
+      // The list of avaliable transfer functions, both built-in and loaded
+      // std::vector<TFN>  tfn_list;
+      std::vector<tfn_reader::TransferFunction> tfn_readers;
+      // Current TFN
+      std::vector<bool> tfn_editable;
       std::vector<std::vector<ColorPoint>>   tfn_c_list;
       std::vector<std::vector<OpacityPoint>> tfn_o_list;
-      
-      // The color control point list
       std::vector<ColorPoint>*   tfn_c;
-      // The opacity control point list
       std::vector<OpacityPoint>* tfn_o;
 
       // interpolated trasnfer function size
@@ -112,8 +129,6 @@ namespace ospray {
       
       // The scenegraph transfer function being manipulated by this widget
       std::shared_ptr<sg::TransferFunction>     tfn_sg;
-      // The list of avaliable transfer functions, both built-in and loaded
-      std::vector<tfn_reader::TransferFunction> tfn_readers;
       // The selected transfer function being shown
       int  tfn_selection;
       
@@ -131,7 +146,7 @@ namespace ospray {
       GLuint tfn_palette;
 
       // The filename input text buffer
-      std::vector<char> text_buffer;
+      std::vector<char> tfn_text_buffer;
 
 
       /* // Select the provided color map specified by tfcnSelection. useOpacity */
