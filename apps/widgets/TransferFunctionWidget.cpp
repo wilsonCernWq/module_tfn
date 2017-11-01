@@ -62,6 +62,7 @@ void ospray::tfn_widget::TransferFunctionWidget::SetTFNSelection(int selection) 
   tfn_c = &(tfn_c_list[selection]);
   tfn_o = &(tfn_o_list[selection]);
   tfn_edit = tfn_editable[selection];
+  tfn_changed = true;
 }
 
 ospray::tfn_widget::TransferFunctionWidget::~TransferFunctionWidget()
@@ -129,7 +130,9 @@ void ospray::tfn_widget::TransferFunctionWidget::drawUi()
   ImGui::SameLine();
   if (ImGui::Button("load new file")) {
     try {
-      load(tfn_text_buffer.data());
+      std::string s = tfn_text_buffer.data();
+      s.erase(s.find_last_not_of(" \n\r\t")+1);
+      load(s.c_str());
     } catch (const std::runtime_error& error) {
       std::cerr
 	<< "\033[1;33m" 
