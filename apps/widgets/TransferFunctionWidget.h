@@ -122,7 +122,8 @@ namespace ospray {
       std::vector<std::vector<OpacityPoint>> tfn_o_list;
       std::vector<ColorPoint>*   tfn_c;
       std::vector<OpacityPoint>* tfn_o;
-
+      bool tfn_edit;
+      
       // interpolated trasnfer function size
       int tfn_w = 256;
       int tfn_h = 1;

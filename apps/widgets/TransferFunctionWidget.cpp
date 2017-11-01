@@ -53,12 +53,14 @@ void ospray::tfn_widget::TransferFunctionWidget::LoadDefaultMap()
   tfn_o_list.back()[2] = OpacityPoint(0.50f, 0.50f);
   tfn_o_list.back()[3] = OpacityPoint(0.75f, 0.75f);
   tfn_o_list.back()[4] = OpacityPoint(1.00f, 1.00f);
+  tfn_editable.emplace_back(true);
 };
 
 void ospray::tfn_widget::TransferFunctionWidget::SetTFNSelection(int selection) {
   tfn_selection = selection;
   tfn_c = &(tfn_c_list[selection]);
   tfn_o = &(tfn_o_list[selection]);
+  tfn_edit = tfn_editable[selection];
 }
 
 ospray::tfn_widget::TransferFunctionWidget::~TransferFunctionWidget()
@@ -117,6 +119,11 @@ void ospray::tfn_widget::TransferFunctionWidget::drawUi()
 	      "Left click on color preview can open the color editor\n");
   // radio paremeters
   ImGui::Separator();
+  ImGui::InputText("Transfer Function Filename",
+		   tfn_text_buffer.data(), tfn_text_buffer.size() - 1);
+  if (ImGui::Button("Save")) { save(tfn_text_buffer.data()); }
+  ImGui::SameLine();
+  if (ImGui::Button("Load")) { load(tfn_text_buffer.data()); }
   //------------ Transfer Function -------------------
   // style
   // only God and me know what do they do ...
@@ -155,6 +162,7 @@ void ospray::tfn_widget::TransferFunctionWidget::drawUi()
   canvas_avail_y -= height + margin;
   // draw color control points
   ImGui::SetCursorScreenPos(ImVec2(canvas_x, canvas_y));
+  if (tfn_edit)
   {
     // draw circle background
     draw_list->AddRectFilled(ImVec2(canvas_x + margin, canvas_y - margin),
@@ -257,7 +265,7 @@ void ospray::tfn_widget::TransferFunctionWidget::drawUi()
   ImGui::SetCursorScreenPos(ImVec2(canvas_x + margin, canvas_y - margin));
   ImGui::InvisibleButton("tfn_palette", ImVec2(width, 2.5 * color_len));
   // add color point
-  if (ImGui::IsMouseDoubleClicked(0) && ImGui::IsItemHovered())
+  if (tfn_edit && ImGui::IsMouseDoubleClicked(0) && ImGui::IsItemHovered())
   {
     const float p = clamp((mouse_x - canvas_x - margin - scroll_x) / (float) width,
 			  0.f, 1.f);
@@ -293,12 +301,6 @@ void ospray::tfn_widget::TransferFunctionWidget::drawUi()
   canvas_y       += 4.f * color_len + margin;
   canvas_avail_y -= 4.f * color_len + margin;
   //------------ Transfer Function -------------------
-  ImGui::SetCursorScreenPos(ImVec2(canvas_x, canvas_y));
-  ImGui::InputText("Transfer Function Filename",
-		   tfn_text_buffer.data(), tfn_text_buffer.size() - 1);
-  if (ImGui::Button("Save")) { save(tfn_text_buffer.data()); }
-  ImGui::SameLine();
-  if (ImGui::Button("Load")) { load(tfn_text_buffer.data()); }
   ImGui::End();
   
   // if (ImGui::Begin("Transfer Function (Qi's version)")){
@@ -511,6 +513,7 @@ void ospray::tfn_widget::TransferFunctionWidget::load(const ospcommon::FileName 
   //tfn_o_list.emplace_back(o_size);
   tfn_c_list.emplace_back(c_size);
   tfn_o_list.emplace_back(o_size);
+  tfn_editable.emplace_back(false); // TODO we dont want to edit loaded TFN
   SetTFNSelection(tfn_c_list.size()-1); // set the loaded function as current
   //----- color ---
   if (c_size < 2) {
