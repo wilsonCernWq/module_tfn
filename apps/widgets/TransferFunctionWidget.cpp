@@ -54,6 +54,7 @@ void ospray::tfn_widget::TransferFunctionWidget::LoadDefaultMap()
   tfn_o_list.back()[3] = OpacityPoint(0.75f, 0.75f);
   tfn_o_list.back()[4] = OpacityPoint(1.00f, 1.00f);
   tfn_editable.emplace_back(true);
+  tfn_names.emplace_back("Jet");
 };
 
 void ospray::tfn_widget::TransferFunctionWidget::SetTFNSelection(int selection) {
@@ -116,17 +117,32 @@ void ospray::tfn_widget::TransferFunctionWidget::drawUi()
   ImGui::Text("Left click and drag to move control points\n"
 	      "Left double click on empty area to add control points\n"
 	      "Right double click on control points to remove it\n"
-	      "Left click on color preview can open the color editor\n");
+	      "Left click on color preview can open the color editor\n\n");
   // radio paremeters
   ImGui::Separator();
-  ImGui::InputText("Transfer Function Filename",
+  std::vector<const char*> names(tfn_names.size(), nullptr);
+  std::transform(tfn_names.begin(), tfn_names.end(), names.begin(),
+		 [](const std::string &t) { return t.c_str(); });
+  ImGui::ListBox("color maps", &tfn_selection, names.data(), names.size());
+  ImGui::InputText("",
 		   tfn_text_buffer.data(), tfn_text_buffer.size() - 1);
-  if (ImGui::Button("Save")) { save(tfn_text_buffer.data()); }
   ImGui::SameLine();
-  if (ImGui::Button("Load")) { load(tfn_text_buffer.data()); }
+  if (ImGui::Button("load new file")) {
+    try {
+      load(tfn_text_buffer.data());
+    } catch (const std::runtime_error& error) {
+      std::cerr
+	<< "\033[1;33m" 
+	<< "Error:" << error.what()
+	<< "\033[0m"
+	<< std::endl;
+    }
+  }
+  // if (ImGui::Button("save")) { save(tfn_text_buffer.data()); }
   //------------ Transfer Function -------------------
   // style
   // only God and me know what do they do ...
+  SetTFNSelection(tfn_selection);
   ImDrawList *draw_list = ImGui::GetWindowDrawList();
   float canvas_x = ImGui::GetCursorScreenPos().x;
   float canvas_y = ImGui::GetCursorScreenPos().y;
@@ -279,7 +295,7 @@ void ospray::tfn_widget::TransferFunctionWidget::drawUi()
     ColorPoint pt; pt.p = p, pt.r = r; pt.g = g; pt.b = b;
     tfn_c->insert(tfn_c->begin() + ir, pt);      
     tfn_changed = true;
-    printf("[GUI] add opacity point at %f with value = (%f, %f, %f)\n", p, r, g, b);
+    // printf("[GUI] add opacity point at %f with value = (%f, %f, %f)\n", p, r, g, b);
   }	      
   // draw background interaction
   ImGui::SetCursorScreenPos(ImVec2(canvas_x + margin, canvas_y - height - margin));
@@ -295,7 +311,7 @@ void ospray::tfn_widget::TransferFunctionWidget::drawUi()
     OpacityPoint pt; pt.p = x, pt.a = y;
     tfn_o->insert(tfn_o->begin()+idx, pt);
     tfn_changed = true;
-    printf("[GUI] add opacity point at %f with value = %f\n", x, y);
+    // printf("[GUI] add opacity point at %f with value = %f\n", x, y);
   }
   // update cursors
   canvas_y       += 4.f * color_len + margin;
@@ -514,10 +530,12 @@ void ospray::tfn_widget::TransferFunctionWidget::load(const ospcommon::FileName 
   tfn_c_list.emplace_back(c_size);
   tfn_o_list.emplace_back(o_size);
   tfn_editable.emplace_back(false); // TODO we dont want to edit loaded TFN
-  SetTFNSelection(tfn_c_list.size()-1); // set the loaded function as current
+  tfn_names.emplace_back(tfn_new.name);
+  SetTFNSelection(tfn_names.size()-1); // set the loaded function as current
+  //----- metadata ----
   //----- color ---
   if (c_size < 2) {
-    std::runtime_error("transfer function contains too few color points");
+    throw std::runtime_error("transfer function contains too few color points");
   }
   // (*tfn_c).emplace_back(0.f,
   // 			tfn_new.rgbValues[0].x,
@@ -559,7 +577,7 @@ void ospray::tfn_widget::TransferFunctionWidget::load(const ospcommon::FileName 
     (*tfn_c)[i].b = tfn_new.rgbValues[i].z;
   }  
   if (o_size < 2) {
-    std::runtime_error("transfer function contains too few opacity points");
+    throw std::runtime_error("transfer function contains too few opacity points");
   }
   for (int i = 0; i < o_size; ++i) {
     (*tfn_o)[i].p = tfn_new.opacityValues[i].x;
