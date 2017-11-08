@@ -15,7 +15,7 @@
 #include "ospray/ospray_cpp/TransferFunction.h"
 #include "common/sg/transferFunction/TransferFunction.h"
 #include "widgets/Imgui3dExport.h"
-#include "tfn/TransferFunctionModule.h"
+#include "core/TransferFunctionModule.h"
 
 namespace ospray {
   namespace tfn_widget {

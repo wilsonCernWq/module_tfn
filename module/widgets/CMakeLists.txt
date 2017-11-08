@@ -15,21 +15,19 @@
 ## ======================================================================== ##
 
 include_directories(
-  ${CMAKE_CURRENT_LIST_DIR}/../../../../apps/exampleViewer/common/gl3w
   ${CMAKE_CURRENT_LIST_DIR}/../../../../apps/exampleViewer/common/imgui
-  ${CMAKE_CURRENT_LIST_DIR}/../../../../apps/exampleViewer/widgets
   ${CMAKE_CURRENT_LIST_DIR}/../../../../apps/exampleViewer
-  ${CMAKE_CURRENT_LIST_DIR}/../../
+  ${CMAKE_CURRENT_LIST_DIR}/../
   ${GLFW_INCLUDE_DIRS}
 )
 
-ospray_create_library(ospray_module_tfn_widget  
+ospray_create_library(tfn_module_widget  
   TransferFunctionWidget.cpp
 LINK
   ospray
   ospray_common
   ospray_imgui
   ospray_imgui_util_sg
-  ospray_module_tfn_core
+  tfn_module_core
   ${GLFW_LIBRARY}
 )

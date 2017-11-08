@@ -12,7 +12,6 @@
 #include "ospray/ospray_cpp/TransferFunction.h"
 #include "common/sg/common/Data.h"
 
-#include "tfn/TransferFunctionModule.h"
 #include "TransferFunctionWidget.h"
 
 using namespace ospcommon;
@@ -57,7 +56,9 @@ void ospray::tfn_widget::TransferFunctionWidget::LoadDefaultMap()
   tfn_names.push_back("Jet");
 };
 
-void ospray::tfn_widget::TransferFunctionWidget::SetTFNSelection(int selection) {
+void 
+ospray::tfn_widget::TransferFunctionWidget::SetTFNSelection(int selection) 
+{
   tfn_selection = selection;
   tfn_c = &(tfn_c_list[selection]);
   tfn_o = &(tfn_o_list[selection]);
