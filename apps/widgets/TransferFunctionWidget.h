@@ -40,27 +40,6 @@ namespace ospray {
       // Save the current transfer function out to the file
       void save(const ospcommon::FileName &fileName) const;
 
-      /* struct Line */
-      /* { */
-      /* 	// A line is made up of points sorted by x, its coordinates are */
-      /* 	// on the range [0, 1] */
-      /* 	std::vector<ospcommon::vec2f> line; */
-      /* 	int color; */
-
-      /* 	// TODO: Constructor that takes an existing line */
-      /* 	// Construct a new diagonal line: [(0, 0), (1, 1)] */
-      /* 	Line(); */
-      /* 	/\* Move a point on the line from start to end, if the line is */
-      /* 	 * not split at 'start' it will be split then moved */
-      /* 	 * TODO: Should we have some cap on the number of points? We should */
-      /* 	 * also track if you're actively dragging a point so we don't recreate */
-      /* 	 * points if you move the mouse too fast */
-      /* 	 *\/ */
-      /* 	void movePoint(const float &startX, const ospcommon::vec2f &end); */
-      /* 	// Remove a point from the line, merging the two segments on either side */
-      /* 	void removePoint(const float &x); */
-      /* }; */
-
     private:
 
       // The indices of the transfer function color presets available
@@ -77,7 +56,10 @@ namespace ospray {
 	float p; // location of the control point [0, 1]
 	float r, g, b;
 	ColorPoint() {};
-        ColorPoint(const float cp, const float cr, const float cg, const float cb):
+        ColorPoint(const float cp, 
+		   const float cr, 
+		   const float cg, 
+		   const float cb):
 	  p(cp), r(cr), g(cg), b(cb){}
         ColorPoint(const ColorPoint& c) : p(c.p), r(c.r), g(c.g), b(c.b) {}
 	ColorPoint& operator=(const ColorPoint &c) {
@@ -106,6 +88,8 @@ namespace ospray {
 	float a;
       };
 
+      // TODO
+      // This MAYBE the correct way of doing this
       struct TFN {
 	std::vector<ColorPoint>   colors;
 	std::vector<OpacityPoint> opacity;
@@ -114,7 +98,6 @@ namespace ospray {
 
     private:
       // The list of avaliable transfer functions, both built-in and loaded
-      // std::vector<TFN>  tfn_list;
       std::vector<tfn::TransferFunction> tfn_readers;
       // Current TFN
       std::vector<bool> tfn_editable;
@@ -126,37 +109,20 @@ namespace ospray {
       std::vector<std::string> tfn_names;
       // interpolated trasnfer function size
       int tfn_w = 256;
-      int tfn_h = 1;
-      
+      int tfn_h = 1;      
       // The scenegraph transfer function being manipulated by this widget
       std::shared_ptr<sg::TransferFunction>     tfn_sg;
       // The selected transfer function being shown
-      int  tfn_selection;
-      
-      /* // Lines for RGBA transfer function controls */
-      /* std::array<Line, 4> rgbaLines; */
-      /* // The line currently being edited */
-      /* int activeLine; */
-      /* // If we're customizing the transfer function's RGB values */
-      /* bool customizing; */
-
+      int  tfn_selection;      
       // Track if the function changed and must be re-uploaded.
       // We start by marking it changed to upload the initial palette
       bool   tfn_changed;
-      // The 2d palette texture on the GPU for displaying the color map in the UI.
+      // The 2d palette texture on the GPU for displaying the color map
+      // in the UI.
       GLuint tfn_palette;
-
       // The filename input text buffer
       std::vector<char> tfn_text_buffer;
-
-
-      /* // Select the provided color map specified by tfcnSelection. useOpacity */
-      /* // indicates if the transfer function's opacity values should be used if available */
-      /* // overwriting the user's set opacity data. This is done when loading from a file */
-      /* // to show the loaded tfcn, but not when switching from the preset picker. */
-      /* void setColorMap(const bool useOpacity); */
-      /* // Load up the preset color maps */
-      /* void loadColorMapPresets(); */
+      // Local functions
       void LoadDefaultMap();
       void SetTFNSelection(int);
     };
