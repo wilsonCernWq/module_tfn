@@ -21,13 +21,13 @@
 #include "ospcommon/FileName.h"
 
 #ifdef _WIN32
-  #ifdef ospray_tfn_EXPORTS
-    #define OSPTFNLIB_INTERFACE __declspec(dllexport)
+  #ifdef ospray_module_tfn_EXPORTS
+    #define OSP_MODULE_TFN_INTERFACE __declspec(dllexport)
   #else
-    #define OSPTFNLIB_INTERFACE __declspec(dllimport)
+    #define OSP_MODULE_TFN_INTERFACE __declspec(dllimport)
   #endif
 #else
-  #define OSPTFNLIB_INTERFACE
+  #define OSP_MODULE_TFN_INTERFACE
 #endif
 
 /* The transfer function file format used by the OSPRay sample apps is a
@@ -47,7 +47,7 @@
  */
 
 namespace tfn {
-  struct OSPTFNLIB_INTERFACE TransferFunction {
+  struct OSP_MODULE_TFN_INTERFACE TransferFunction {
     std::string name;
     std::vector<ospcommon::vec3f> rgbValues;
     std::vector<ospcommon::vec2f> opacityValues;
