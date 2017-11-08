@@ -9,7 +9,6 @@ project(module_tfn)
 option(OSPRAY_MODULE_TFN "Build 2D transfer function library for OSPRay" ON)
 option(OSPRAY_MODULE_TFN_WIDGET
   "Build 2D transfer function widget for OSPRay Application" OFF)
-
 OPTION(OSPRAY_MODULE_PARAVIEW_TFN_CVT
   "Build ParaView to OSPRay viewer transfer function converter" OFF)
 OPTION(OSPRAY_MODULE_VISIT_TFN_CVT
@@ -20,7 +19,15 @@ if(OSPRAY_MODULE_TFN)
   set(CMAKE_CXX_STANDARD 11)
   set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
-  ospray_create_library(ospray_module_tfn
+  # ospray_create_library(ospray_module_tfn
+  #   ospray/moduleInit.cpp
+  #   ospray/transferFunction/Linear2DTransferFunction.cpp
+  #   ospray/transferFunction/Linear2DTransferFunction.ispc
+  #   LINK
+  #   ospray
+  #   ospray_common)
+
+  ospray_create_library(ospray_module_tfn_core
     tfn/TransferFunctionModule.cpp
     LINK
     ospray_common)

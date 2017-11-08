@@ -30,6 +30,6 @@ LINK
   ospray_common
   ospray_imgui
   ospray_imgui_util_sg
-  ospray_module_tfn
+  ospray_module_tfn_core
   ${GLFW_LIBRARY}
 )
