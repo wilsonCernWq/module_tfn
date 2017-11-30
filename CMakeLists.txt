@@ -22,7 +22,6 @@ cmake_minimum_required(VERSION 3.1)
 project(module_tfn)
 option(OSPRAY_MODULE_TFN "Build 2D transfer function library for OSPRay" ON)
 if(OSPRAY_MODULE_TFN)
-  add_subdirectory(module)
   add_subdirectory(ospray)
 endif()
 
