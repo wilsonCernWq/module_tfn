@@ -22,40 +22,59 @@ namespace tfn {
 
   void Linear2DTransferFunction::commit()
   {
+    // Debug output
     std::cout << "#osp Linear2DTransferFunction" << std::endl;
 
     // Create the equivalent ISPC transfer function.
     if (ispcEquivalent == nullptr) createEquivalentISPC();
 
+    // Commit to parent class
+    TransferFunction::commit();
+
     // Retrieve the color and opacity values.
-    colorW = getParam1i("colorWidth",  0);
-    colorH = getParam1i("colorHeight", 0);
+    gradstep = getParam1f("gradientStep", 1.f);
+    colorW   = getParam1i("colorWidth",  0);
+    colorH   = getParam1i("colorHeight", 0);
     opacityW = getParam1i("opacityWidth",  0);
     opacityH = getParam1i("opacityHeight", 0);
     colorValues   = getParamData("colors", nullptr);
     opacityValues = getParamData("opacities", nullptr);
-    ispc::Linear2DTransferFunction_setPreIntegration(ispcEquivalent,
-						     getParam1i("preIntegration", 0));
+    volume = (Volume*) getParamObject("volume", 
+				      nullptr);
+    ispc::LTFN2D_setPreIntegration(ispcEquivalent,
+				   getParam1i("preIntegration", 
+					      0));
 
     // Set the color values.
     if (colorValues) {
-      ispc::Linear2DTransferFunction_setColorValues(ispcEquivalent, 
-						    colorValues->numItems, 
-						    (ispc::vec3f*)colorValues->data);
+      ispc::LTFN2D_setColorValues(ispcEquivalent, 
+				  colorValues->numItems, 
+				  colorW, colorH,
+				  (ispc::vec3f*)colorValues->data);
     }
 
     // Set the opacity values.
     if (opacityValues) {
-      ispc::Linear2DTransferFunction_setOpacityValues(ispcEquivalent, 
-						      opacityValues->numItems, 
-						      (float *)opacityValues->data);
+      ispc::LTFN2D_setOpacityValues(ispcEquivalent, 
+				    opacityValues->numItems, 
+				    opacityW, opacityH,
+				    (float *)opacityValues->data);
     }
+    
+    // Set volume to the function
+    ispc::LTFN2D_setVolume(ispcEquivalent, volume->getIE(), gradstep);
 
-    if (getParam1i("preIntegration", 0) && colorValues && opacityValues)
-      ispc::Linear2DTransferFunction_precomputePreIntegratedValues(ispcEquivalent);
+    // Set flag to query color using sample coordinate
+    ispc::LTFN2D_setQueryByCoordinate(ispcEquivalent, 1);
 
-    TransferFunction::commit();
-
+    // Compute preingetration
+    if (getParam1i("preIntegration", 0) && 
+	colorValues && 
+	opacityValues) 
+    {
+      ispc::LTFN2D_precomputePreIntegratedValues(ispcEquivalent);
+    }
+    
     // Notify listeners that the transfer function has changed.
     notifyListenersThatObjectGotChanged();
   }
@@ -72,7 +91,7 @@ namespace tfn {
                     "attempt to overwrite an existing ISPC transfer function");
 
     // Create the equivalent ISPC transfer function.
-    ispcEquivalent = ispc::Linear2DTransferFunction_createInstance();
+    ispcEquivalent = ispc::LTFN2D_createInstance();
 
     // The object may not have been created.
     exitOnCondition(ispcEquivalent == nullptr,
@@ -81,7 +100,6 @@ namespace tfn {
 
   // A piecewise linear transfer function.
   OSP_REGISTER_TRANSFER_FUNCTION(Linear2DTransferFunction, piecewise_linear_2d);
-
 }
 } // ::ospray
 

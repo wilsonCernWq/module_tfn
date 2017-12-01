@@ -18,6 +18,7 @@
 
 // ospray
 #include "common/Data.h"
+#include "volume/Volume.h"
 #include "transferFunction/TransferFunction.h"
 
 namespace ospray {
@@ -30,25 +31,21 @@ namespace tfn {
   {
     Linear2DTransferFunction() = default;
     virtual ~Linear2DTransferFunction() override = default;
-
     virtual void commit() override;
-
     virtual std::string toString() const override;
-
   private:
-
-    size_t colorW = 0, colorH = 0;
+    size_t colorW = 0; // width of the color map (scalar axis)
+    size_t colorH = 0; // height of the color map (gradient axis)
     size_t opacityW = 0, opacityH = 0;
-
+    float gradstep = 1.f;
     //! Data 2D array that stores the color map.
     Ref<Data> colorValues;
-
     //! Data 2D array that stores the opacity map.
     Ref<Data> opacityValues;
-
+    //! Associated Volume
+    Ref<Volume> volume;
     //! Create the equivalent ISPC transfer function.
     void createEquivalentISPC();
-
   };
 };
 } // ::ospray
