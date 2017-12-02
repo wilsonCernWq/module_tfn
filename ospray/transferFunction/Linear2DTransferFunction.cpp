@@ -62,10 +62,7 @@ namespace tfn {
     }
     
     // Set volume to the function
-    ispc::LTFN2D_setVolume(ispcEquivalent, volume->getIE(), gradstep);
-
-    // Set flag to query color using sample coordinate
-    ispc::LTFN2D_setQueryByCoordinate(ispcEquivalent, 1);
+    // ispc::LTFN2D_setVolume(ispcEquivalent, volume->getIE(), gradstep);
 
     // Compute preingetration
     if (getParam1i("preIntegration", 0) && 
@@ -74,6 +71,9 @@ namespace tfn {
     {
       ispc::LTFN2D_precomputePreIntegratedValues(ispcEquivalent);
     }
+
+    // Set flag to query color using sample coordinate
+    ispc::LTFN2D_setQueryByCoordinate(ispcEquivalent, false);
     
     // Notify listeners that the transfer function has changed.
     notifyListenersThatObjectGotChanged();
