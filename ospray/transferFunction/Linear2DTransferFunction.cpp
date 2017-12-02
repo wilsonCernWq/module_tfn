@@ -22,9 +22,6 @@ namespace tfn {
 
   void Linear2DTransferFunction::commit()
   {
-    // Debug output
-    std::cout << "#osp Linear2DTransferFunction" << std::endl;
-
     // Create the equivalent ISPC transfer function.
     if (ispcEquivalent == nullptr) createEquivalentISPC();
 
@@ -86,6 +83,9 @@ namespace tfn {
 
   void Linear2DTransferFunction::createEquivalentISPC()
   {
+    // Debug output
+    std::cout << "#osp Creating Linear2DTransferFunction" << std::endl;
+
     // The equivalent ISPC transfer function must not exist yet.
     exitOnCondition(ispcEquivalent != nullptr,
                     "attempt to overwrite an existing ISPC transfer function");
