@@ -42,8 +42,6 @@ namespace tfn {
     Ref<Data> colorValues;
     //! Data 2D array that stores the opacity map.
     Ref<Data> opacityValues;
-    //! Associated Volume
-    Ref<Volume> volume;
     //! Create the equivalent ISPC transfer function.
     void createEquivalentISPC();
   };

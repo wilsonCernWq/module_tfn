@@ -40,9 +40,8 @@ struct Linear2DTransferFunction {
   uniform int            colorValueCount;  
   uniform vec3f *uniform colorPITable;
 
-  //! Associated transfer function volume
-  uniform float gradStep;
-  uniform Volume *uniform volume;
+  //! Gradient Value Range
+  uniform vec2f gradRange;
 
   //! A 2D array that contains precomputed minimum and maximum opacity values for a transfer function.
   vec2f minMaxOpacityInRange[PRECOMPUTED_OPACITY_SUBRANGE_COUNT][PRECOMPUTED_OPACITY_SUBRANGE_COUNT];

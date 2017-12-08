@@ -36,8 +36,6 @@ namespace tfn {
     opacityH = getParam1i("opacityHeight", 0);
     colorValues   = getParamData("colors", nullptr);
     opacityValues = getParamData("opacities", nullptr);
-    volume = (Volume*) getParamObject("volume", 
-				      nullptr);
     ispc::LTFN2D_setPreIntegration(ispcEquivalent,
 				   getParam1i("preIntegration", 
 					      0));
@@ -58,9 +56,6 @@ namespace tfn {
 				    (float *)opacityValues->data);
     }
     
-    // Set volume to the function
-    // ispc::LTFN2D_setVolume(ispcEquivalent, volume->getIE(), gradstep);
-
     // Compute preingetration
     if (getParam1i("preIntegration", 0) && 
 	colorValues && 

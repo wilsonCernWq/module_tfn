@@ -18,32 +18,35 @@
 
 inline varying vec3f
 LTFN2D_getColorForCoordinate(const void *uniform _self,
+			     void *uniform _volume,
 			     varying vec3f coordinate)
 {
 
   // Return (0,0,0) for NaN values.
   if (isnan(coordinate)) { return make_vec3f(0.0f); }
 
-  return make_vec3f(0.0f);
-
   // Cast to the actual TransferFunction subtype.
   const uniform Linear2DTransferFunction *uniform self
     = (const uniform Linear2DTransferFunction *uniform) _self;
-  
+
+  // Cast to the Volume type.
+  uniform Volume *uniform volume
+    = (uniform Volume *uniform) _volume;
+
   // No color values may be available.
   if (self->colorValueCount == 0) {  return make_vec3f(1.0f); }
 
   // Sample value
-  varying float value = self->volume->sample(self->volume, coordinate);
-  varying vec3f grad  = self->volume->computeGradient(self->volume, coordinate);
+  varying float vy = volume->sample(volume, coordinate);
+  varying float vx = length(volume->computeGradient(volume, coordinate));
 
-  // Clamp the value to the lower bound of the value range.
-  if (value <= self->super.valueRange.x)
-    return self->colorValues[0];
+  // // Clamp the value to the lower bound of the value range.
+  // if (value <= self->super.valueRange.x)
+  //   return self->colorValues[0];
 
-  // Clamp the value to the upper bound of the value range.
-  if (value >= self->super.valueRange.y)
-    return self->colorValues[self->colorValueCount - 1];
+  // // Clamp the value to the upper bound of the value range.
+  // if (value >= self->super.valueRange.y)
+  //   return self->colorValues[self->colorValueCount - 1];
 
   // // Map the value into the range [0.0, 1.0].
   // value
@@ -480,6 +483,9 @@ void LTFN2D_precomputePreIntegratedColorValues(void* uniform _self)
   }
 }
 
+// ======================================================================== //
+// Exported FUnctions
+// ======================================================================== //
 export void LTFN2D_setColorValues(void *uniform _self,
 				  const uniform size_t &count,
 				  const uniform size_t &width,
@@ -548,26 +554,24 @@ export void LTFN2D_precomputePreIntegratedValues(void *uniform _self)
   self->super.preIntegrationComputed = true;
 }
 
-export void LTFN2D_setVolume(void *uniform _self, 
-			     void* uniform volume,
-			     const uniform float step) 
-{
-  // Cast to the actual TransferFunction subtype.
-  uniform Linear2DTransferFunction *uniform self
-    = (uniform Linear2DTransferFunction *uniform) _self;
-
-  // Set the transfer function value range.
-  self->volume = (uniform Volume* uniform)volume;
-  self->gradStep = step;
-}
-
 export void LTFN2D_setQueryByCoordinate(void *uniform _self, 
 					const uniform bool flag) 
 {
   // Cast to the actual type.
-  uniform TransferFunction *uniform self = 
-    (uniform TransferFunction *uniform) _self;
+  Linear2DTransferFunction *uniform self
+    = (Linear2DTransferFunction *uniform) _self;
 
   // Set the transfer function value range.
-  self->queryByCoordinate = flag;
+  self->super.queryByCoordinate = flag;
+}
+
+export void LTFN2D_setValueRange(void *uniform _self, 
+				 const uniform vec2f &value) 
+{
+  // Cast to the actual type.
+  Linear2DTransferFunction *uniform self
+    = (Linear2DTransferFunction *uniform) _self;
+
+  // Set the transfer function value range.
+  self->gradRange = value;
 }
