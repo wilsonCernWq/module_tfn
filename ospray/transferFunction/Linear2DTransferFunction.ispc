@@ -37,17 +37,21 @@ LTFN2D_getColorForCoordinate(const void *uniform _self,
   if (self->colorValueCount == 0) {  return make_vec3f(1.0f); }
 
   // Sample value
-  varying float vy = volume->sample(volume, coordinate);
-  varying float vx = length(volume->computeGradient(volume, coordinate));
+  varying float v = volume->sample(volume, coordinate);
+  varying float g = length(volume->computeGradient(volume, coordinate));
+  
+  // Clamp the value to the lower bound of the value range.
+  if (v <= self->super.valueRange.x) { v = self->super.valueRange.x; }
 
-  // // Clamp the value to the lower bound of the value range.
-  // if (value <= self->super.valueRange.x)
-  //   return self->colorValues[0];
+  // Clamp the value to the upper bound of the value range.
+  if (v >= self->super.valueRange.y) { v = self->super.valueRange.y; }
 
-  // // Clamp the value to the upper bound of the value range.
-  // if (value >= self->super.valueRange.y)
-  //   return self->colorValues[self->colorValueCount - 1];
-
+  // Clamp the value to the lower bound of the gradient range.
+  if (g <= self->gradRange.x) { g = self->gradRange.x; }
+  
+  // Clamp the value to the upper bound of the gradient range.
+  if (g >= self->gradRange.y) { g = self->gradRange.y; }
+  
   // // Map the value into the range [0.0, 1.0].
   // value
   //   = (value - self->super.valueRange.x)
