@@ -209,13 +209,13 @@ LTFN2D_getColorForValue(const void *uniform _self,
 
   // Clamp the value to the upper bound of the value range.
   if (value >= self->super.valueRange.y)
-    return self->colorValues[self->colorValueCount - 1];
+    return self->colorValues[self->colorValueW - 1];
 
   // Map the value into the range [0.0, 1.0].
   value
     = (value - self->super.valueRange.x)
     / (self->super.valueRange.y - self->super.valueRange.x)
-    * (self->colorValueCount - 1.0f);
+    * (self->colorValueW - 1.0f);
 
   // Compute the color index and fractional offset.
   int   index     = floor(value);
@@ -224,7 +224,7 @@ LTFN2D_getColorForValue(const void *uniform _self,
   // The interpolated color.
   return
     ((1.0f - remainder) * self->colorValues[index]
-     + remainder        * self->colorValues[min(index + 1, self->colorValueCount - 1)]);
+     + remainder        * self->colorValues[min(index + 1, self->colorValueW - 1)]);
 }
 
 inline varying float
@@ -248,13 +248,13 @@ LTFN2D_getOpacityForValue(const void *uniform _self,
 
   // Clamp the value to the upper bound of the value range.
   if (value >= self->super.valueRange.y)
-    return self->opacityValues[self->opacityValueCount - 1];
+    return self->opacityValues[self->opacityValueW - 1];
 
   // Map the value into the range [0.0, numValues).
   const float remapped
     = (value - self->super.valueRange.x)
     / (self->super.valueRange.y - self->super.valueRange.x)
-    * (self->opacityValueCount - 1.0f);
+    * (self->opacityValueW - 1.0f);
 
   // Compute the opacity index and fractional offset.
   int index = floor(remapped);
@@ -263,7 +263,7 @@ LTFN2D_getOpacityForValue(const void *uniform _self,
   // The interpolated opacity.
   float ret =
     (1.0f - remainder) * self->opacityValues[index]
-    + remainder * self->opacityValues[min(index + 1, self->opacityValueCount - 1)];
+    + remainder * self->opacityValues[min(index + 1, self->opacityValueW - 1)];
   return ret;
 }
 
@@ -272,6 +272,9 @@ inline varying float
 LTFN2D_getIntegratedOpacityForValue(const void *uniform _self,
 				    varying float value1, varying float value2)
 {
+  // disable this function
+  return 1.0f;
+
   // Cast to the actual TransferFunction subtype.
   const Linear2DTransferFunction *uniform self
     = (const Linear2DTransferFunction *uniform) _self;
@@ -355,6 +358,9 @@ inline varying vec3f
 LTFN2D_getIntegratedColorForValue(const void *uniform _self,
 				  varying float value1, varying float value2)
 {
+  // disable this function
+  return make_vec3f(1.0f);
+      
   // Cast to the actual TransferFunction subtype.
   const Linear2DTransferFunction *uniform self
     = (const Linear2DTransferFunction *uniform) _self;
@@ -458,7 +464,6 @@ LTFN2D_getMaxOpacityInRange(void *uniform _self,
   const varying int i = floor(clamp((range.x - self->super.valueRange.x) / denom) * maxDim);
   const varying int j = ceil(clamp((range.y - self->super.valueRange.x) / denom) * maxDim);
   return self->minMaxOpacityInRange[min(i,maxDim)][min(j,maxDim)].y;
-
 }
 
 void LTFN2D_precomputeMinMaxOpacityRanges(void *uniform _self)
@@ -471,16 +476,19 @@ void LTFN2D_precomputeMinMaxOpacityRanges(void *uniform _self)
 
     // Figure out the range of values in the array we are going to compare.
     const uniform int checkRangeLow
-      = self->opacityValueCount * (((float) i) / PRECOMPUTED_OPACITY_SUBRANGE_COUNT);
+      = self->opacityValueW * (((float) i) / PRECOMPUTED_OPACITY_SUBRANGE_COUNT);
     const uniform int checkRangeHigh
-      = self->opacityValueCount * (((float)i + 1) / PRECOMPUTED_OPACITY_SUBRANGE_COUNT);
+      = self->opacityValueW * (((float)i + 1) / PRECOMPUTED_OPACITY_SUBRANGE_COUNT);
 
     uniform vec2f range = make_vec2f(self->opacityValues[checkRangeLow]);
-    for (uniform int opacityIDX = checkRangeLow + 1;
-         opacityIDX < checkRangeHigh;
-         opacityIDX++)
-      range = make_vec2f(min(range.x, self->opacityValues[opacityIDX]),
-                         max(range.y, self->opacityValues[opacityIDX]));
+    
+    for (uniform int opacityIDX = checkRangeLow + 1; opacityIDX < checkRangeHigh; opacityIDX++)
+    {
+      for (uniform int id = 0; id < self->opacityValueH; id++) {
+	range = make_vec2f(min(range.x, self->opacityValues[opacityIDX + id * self->opacityValueW]),
+			   max(range.y, self->opacityValues[opacityIDX + id * self->opacityValueW]));
+      }
+    }
 
     self->minMaxOpacityInRange[i][i] = range;
   }
@@ -490,13 +498,18 @@ void LTFN2D_precomputeMinMaxOpacityRanges(void *uniform _self)
     for (uniform int j = i + 1; j < PRECOMPUTED_OPACITY_SUBRANGE_COUNT; j++) {
 
       // Figure out the range of values in the array we are going to compare.
-      const uniform int checkRangeLow = self->opacityValueCount * (((float) i) / PRECOMPUTED_OPACITY_SUBRANGE_COUNT);
-      const uniform int checkRangeHigh = self->opacityValueCount * (((float) j + 1) / PRECOMPUTED_OPACITY_SUBRANGE_COUNT);
+      const uniform int checkRangeLow
+	= self->opacityValueW * (((float) i) / PRECOMPUTED_OPACITY_SUBRANGE_COUNT);
+      const uniform int checkRangeHigh
+	= self->opacityValueW * (((float) j + 1) / PRECOMPUTED_OPACITY_SUBRANGE_COUNT);
 
       uniform vec2f range = self->minMaxOpacityInRange[i][i];
-      for (uniform int opacityIDX = checkRangeLow + 1; opacityIDX < checkRangeHigh; opacityIDX++)
-        range = make_vec2f(min(range.x, self->opacityValues[opacityIDX]),
-                           max(range.y, self->opacityValues[opacityIDX]));
+      for (uniform int opacityIDX = checkRangeLow + 1; opacityIDX < checkRangeHigh; opacityIDX++) {
+	for (uniform int id = 0; id < self->opacityValueH; id++) {
+	  range = make_vec2f(min(range.x, self->opacityValues[opacityIDX + id * self->opacityValueW]),
+			     max(range.y, self->opacityValues[opacityIDX + id * self->opacityValueW]));
+	}
+      }
 
       self->minMaxOpacityInRange[i][j] = range;
 
@@ -569,7 +582,7 @@ void LTFN2D_precomputePreIntegratedColorValues(void* uniform _self)
 //-----------------------------------------------------------------------------------
 
 export void LTFN2D_setPreIntegration(void *uniform _self,
-                                                                const uniform bool& value)
+				     const uniform bool& value)
 {
   // Cast to the actual TransferFunction subtype.
   Linear2DTransferFunction *uniform self
@@ -600,13 +613,13 @@ export void *uniform LTFN2D_createInstance()
   // Function to get the interpolated color for a given value.
   self->super.getColorForValue = LTFN2D_getColorForValue;
 
-  // Function to get the interpolated color for a given value.
-  self->super.getIntegratedColorForValue = LTFN2D_getIntegratedColorForValue;
-
-  // Function to get the interpolated opacity for a given value.
+  // // Function to get the interpolated opacity for a given value.
   self->super.getOpacityForValue = LTFN2D_getOpacityForValue;
 
-  // Function to get the interpolated opacity for a given value.
+  // // Function to get the interpolated color for a given value.
+  self->super.getIntegratedColorForValue = LTFN2D_getIntegratedColorForValue;
+
+  // // Function to get the interpolated opacity for a given value.
   self->super.getIntegratedOpacityForValue = LTFN2D_getIntegratedOpacityForValue;
 
   // Virtual function to look up the maximum opacity based on an input range.
@@ -687,15 +700,14 @@ export void LTFN2D_setOpacityValues(void *uniform _self,
 
 //-----------------------------------------------------------------------------------
 
-export void LTFN2D_setQueryByCoordinate(void *uniform _self, 
-					const uniform bool flag) 
+export void LTFN2D_setQueryByCoordinate(void *uniform _self) 
 {
   // Cast to the actual type.
   Linear2DTransferFunction *uniform self
     = (Linear2DTransferFunction *uniform) _self;
 
   // Set the transfer function value range.
-  self->super.queryByCoordinate = flag;
+  self->super.queryByCoordinate = true;
 }
 
 export void LTFN2D_setGradRange(void *uniform _self, 

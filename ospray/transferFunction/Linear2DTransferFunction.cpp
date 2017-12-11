@@ -29,14 +29,6 @@ namespace tfn {
     TransferFunction::commit();
 
     // Retrieve the color and opacity values.
-    colorW   = getParam1i("colorWidth",  0);
-    colorH   = getParam1i("colorHeight", 0);
-    opacityW = getParam1i("opacityWidth",  0);
-    opacityH = getParam1i("opacityHeight", 0);
-    // std::cout << "colorW " << colorW << std::endl;
-    // std::cout << "colorH " << colorH << std::endl;
-    // std::cout << "opacityW " << opacityW << std::endl;
-    // std::cout << "opacityH " << opacityH << std::endl;
     colorValues   = getParamData("colors", nullptr);
     opacityValues = getParamData("opacities", nullptr);
     ispc::LTFN2D_setPreIntegration(ispcEquivalent,
@@ -49,6 +41,8 @@ namespace tfn {
 
     // Set the color values.
     if (colorValues) {
+      colorW   = getParam1i("colorWidth",  colorValues->numItems);
+      colorH   = getParam1i("colorHeight", 1);
       ispc::LTFN2D_setColorValues(ispcEquivalent, 
 				  colorValues->numItems, 
 				  colorW, colorH,
@@ -57,6 +51,8 @@ namespace tfn {
 
     // Set the opacity values.
     if (opacityValues) {
+      opacityW = getParam1i("opacityWidth",  opacityValues->numItems);
+      opacityH = getParam1i("opacityHeight", 1);
       ispc::LTFN2D_setOpacityValues(ispcEquivalent, 
 				    opacityValues->numItems, 
 				    opacityW, opacityH,
@@ -70,7 +66,7 @@ namespace tfn {
     }
 
     // Set flag to query color using sample coordinate
-    ispc::LTFN2D_setQueryByCoordinate(ispcEquivalent, true);
+    ispc::LTFN2D_setQueryByCoordinate(ispcEquivalent);
     
     // Notify listeners that the transfer function has changed.
     notifyListenersThatObjectGotChanged();
