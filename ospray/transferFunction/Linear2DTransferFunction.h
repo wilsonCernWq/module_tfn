@@ -36,8 +36,8 @@ namespace tfn {
   private:
     size_t colorW = 0; // width of the color map (scalar axis)
     size_t colorH = 0; // height of the color map (gradient axis)
-    size_t opacityW = 0, opacityH = 0;
-    float gradstep = 1.f;
+    size_t opacityW = 0;
+    size_t opacityH = 0;
     //! Data 2D array that stores the color map.
     Ref<Data> colorValues;
     //! Data 2D array that stores the opacity map.

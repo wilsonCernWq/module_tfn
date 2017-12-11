@@ -19,32 +19,51 @@
 inline varying vec3f
 LTFN2D_getColorForCoordinate(const void *uniform _self,
 			     void *uniform _volume,
-			     varying vec3f coordinate)
+			     const varying vec3f coordinate)
 {
-
+  // ====================================================================== //
+  // Check coordinate value
+  // ====================================================================== //
+  
   // Return (0,0,0) for NaN values.
   if (isnan(coordinate)) { return make_vec3f(0.0f); }
 
+  // ====================================================================== //
+  // Check function length
+  // ====================================================================== //
+  
   // Cast to the actual TransferFunction subtype.
   const uniform Linear2DTransferFunction *uniform self
     = (const uniform Linear2DTransferFunction *uniform) _self;
 
+  // No color values may be available.
+  if (self->colorValueCount == 0) {  return make_vec3f(1.0f); }
+
+  // ====================================================================== //
+  // Compute
+  // ====================================================================== //
+  
   // Cast to the Volume type.
   uniform Volume *uniform volume
     = (uniform Volume *uniform) _volume;
-
-  // No color values may be available.
-  if (self->colorValueCount == 0) {  return make_vec3f(1.0f); }
 
   // Sample value
   varying float v = volume->sample(volume, coordinate);
   varying float g = length(volume->computeGradient(volume, coordinate));
   
   // Clamp the value to the lower bound of the value range.
-  if (v <= self->super.valueRange.x) { v = self->super.valueRange.x; }
+  if (v <= self->super.valueRange.x) {
+    if (self->colorValueH == 1) { return self->colorValues[0]; }
+    v = self->super.valueRange.x;
+  }
 
   // Clamp the value to the upper bound of the value range.
-  if (v >= self->super.valueRange.y) { v = self->super.valueRange.y; }
+  if (v >= self->super.valueRange.y) {
+    if (self->colorValueH == 1) {
+      return self->colorValues[self->colorValueCount - 1];
+    }
+    v = self->super.valueRange.y;
+  }
 
   // Clamp the value to the lower bound of the gradient range.
   if (g <= self->gradRange.x) { g = self->gradRange.x; }
@@ -52,21 +71,121 @@ LTFN2D_getColorForCoordinate(const void *uniform _self,
   // Clamp the value to the upper bound of the gradient range.
   if (g >= self->gradRange.y) { g = self->gradRange.y; }
   
-  // // Map the value into the range [0.0, 1.0].
-  // value
-  //   = (value - self->super.valueRange.x)
-  //   / (self->super.valueRange.y - self->super.valueRange.x)
-  //   * (self->colorValueCount - 1.0f);
+  // Map the value into the range [0.0, 1.0].
+  v = (v - self->super.valueRange.x)
+    / (self->super.valueRange.y - self->super.valueRange.x)
+    * (self->colorValueW - 1.0f);
 
-  // // Compute the color index and fractional offset.
-  // int   index     = floor(value);
-  // float remainder = value - index;
+  g = (g - self->gradRange.x)
+    / (self->gradRange.y - self->gradRange.x)
+    * (self->colorValueH - 1.0f);
 
-  // // The interpolated color.
-  // return
-  //   ((1.0f - remainder) * self->colorValues[index]
-  //    + remainder        * self->colorValues[min(index + 1, self->colorValueCount - 1)]);
+  // Compute the color index and fractional offset.
+  const varying int   i_x = floor(v);
+  const varying float r_x = v - i_x;
+  const varying int   i_y = floor(g);
+  const varying float r_y = g - i_y;
+
+  // The interpolated color.
+  const varying int idx_ll =
+    i_y * self->colorValueW + i_x;
+  const varying int idx_lr =
+    i_y * self->colorValueW + min(i_x + 1, self->colorValueW - 1);
+  const varying int idx_ul =
+    min(i_y + 1, self->colorValueH - 1) * self->colorValueW + i_x;
+  const varying int idx_ur =
+    min(i_y + 1, self->colorValueH - 1) * self->colorValueW + min(i_x + 1, self->colorValueW - 1);
+  return
+    ((1.f - r_y) * ((1.0f - r_x) * self->colorValues[idx_ll] + r_x * self->colorValues[idx_lr]) +
+     (r_y      ) * ((1.0f - r_x) * self->colorValues[idx_ul] + r_x * self->colorValues[idx_ur]));
 }
+
+inline varying float
+LTFN2D_getOpacityForCoordinate(const void *uniform _self,
+			       void *uniform _volume,
+			       const varying vec3f coordinate)
+{
+  // ====================================================================== //
+  // Check coordinate value
+  // ====================================================================== //
+  
+  // Return (0,0,0) for NaN values.
+  if (isnan(coordinate)) { return 0.0f; }
+
+  // ====================================================================== //
+  // Check function length
+  // ====================================================================== //
+  
+  // Cast to the actual TransferFunction subtype.
+  const uniform Linear2DTransferFunction *uniform self
+    = (const uniform Linear2DTransferFunction *uniform) _self;
+
+  // No opacity values may be available.
+  if (self->opacityValueCount == 0) {  return 1.0f; }
+
+  // ====================================================================== //
+  // Compute
+  // ====================================================================== //
+  
+  // Cast to the Volume type.
+  uniform Volume *uniform volume
+    = (uniform Volume *uniform) _volume;
+
+  // Sample value
+  varying float v = volume->sample(volume, coordinate);
+  varying float g = length(volume->computeGradient(volume, coordinate));
+
+  // Clamp the value to the lower bound of the value range.
+  if (v <= self->super.valueRange.x) {
+    if (self->opacityValueH == 1) { return self->opacityValues[0]; }
+    v = self->super.valueRange.x;
+  }
+
+  // Clamp the value to the upper bound of the value range.
+  if (v >= self->super.valueRange.y) {
+    if (self->opacityValueH == 1) {
+      return self->opacityValues[self->opacityValueCount - 1];
+    }
+    v = self->super.valueRange.y;
+  }
+
+  // Clamp the value to the lower bound of the gradient range.
+  if (g <= self->gradRange.x) { g = self->gradRange.x; }
+  
+  // Clamp the value to the upper bound of the gradient range.
+  if (g >= self->gradRange.y) { g = self->gradRange.y; }
+  
+  // Map the value into the range [0.0, 1.0].
+  v = (v - self->super.valueRange.x)
+    / (self->super.valueRange.y - self->super.valueRange.x)
+    * (self->opacityValueW - 1.0f);
+
+  g = (g - self->gradRange.x)
+    / (self->gradRange.y - self->gradRange.x)
+    * (self->opacityValueH - 1.0f);
+
+  // Compute the opacity index and fractional offset.
+  const varying int   i_x = floor(v);
+  const varying float r_x = v - i_x;
+  const varying int   i_y = floor(g);
+  const varying float r_y = g - i_y;
+  
+  // The interpolated opacity.
+  const varying int idx_ll =
+    i_y * self->opacityValueW + i_x;
+  const varying int idx_lr =
+    i_y * self->opacityValueW + min(i_x + 1, self->opacityValueW - 1);
+  const varying int idx_ul =
+    min(i_y + 1, self->opacityValueH - 1) * self->opacityValueW + i_x;
+  const varying int idx_ur =
+    min(i_y + 1, self->opacityValueH - 1) * self->opacityValueW + min(i_x + 1, self->opacityValueW - 1);
+  const float ret =
+    ((1.f - r_y) * ((1.0f - r_x) * self->opacityValues[idx_ll] + r_x * self->opacityValues[idx_lr]) +
+     (r_y      ) * ((1.0f - r_x) * self->opacityValues[idx_ul] + r_x * self->opacityValues[idx_ur]));
+  return ret;
+}
+
+//-----------------------------------------------------------------------------------
 
 inline varying vec3f
 LTFN2D_getColorForValue(const void *uniform _self,
@@ -387,46 +506,6 @@ void LTFN2D_precomputeMinMaxOpacityRanges(void *uniform _self)
 
 }
 
-export void *uniform LTFN2D_createInstance()
-{
-  // The transfer function.
-  Linear2DTransferFunction *uniform self = uniform new uniform Linear2DTransferFunction;
-
-  // Function to get the interpolated color for a given value.
-  self->super.getColorForValue = LTFN2D_getColorForValue;
-
-  // Function to get the interpolated color for a given value.
-  self->super.getIntegratedColorForValue = LTFN2D_getIntegratedColorForValue;
-
-  // Function to get the interpolated opacity for a given value.
-  self->super.getOpacityForValue = LTFN2D_getOpacityForValue;
-
-  // Function to get the interpolated opacity for a given value.
-  self->super.getIntegratedOpacityForValue = LTFN2D_getIntegratedOpacityForValue;
-
-  // Virtual function to look up the maximum opacity based on an input range.
-  self->super.getMaxOpacityInRange = LTFN2D_getMaxOpacityInRange;
-
-  // Virtual function to look up the min/max opacity based on an input range.
-  self->super.getMinMaxOpacityInRange = LTFN2D_getMinMaxOpacityInRange;
-
-  // Transfer function colors and count.
-  self->colorValues = NULL;
-  self->colorValueCount = 0;
-  self->colorPITable = NULL;
-
-  // Transfer function opacity values and count.
-  self->opacityValues = NULL;
-  self->opacityValueCount = 0;
-  self->opacityPITable = NULL;
-
-  // The default transfer function value range.
-  self->super.valueRange = make_vec2f(0.0f, 1.0f);
-
-  // Freshly baked transfer function.
-  return self;
-}
-
 void LTFN2D_precomputePreIntegratedOpacityValues(void* uniform _self)
 {
   // Cast to the actual TransferFunction subtype.
@@ -487,9 +566,76 @@ void LTFN2D_precomputePreIntegratedColorValues(void* uniform _self)
   }
 }
 
+//-----------------------------------------------------------------------------------
+
+export void LTFN2D_setPreIntegration(void *uniform _self,
+                                                                const uniform bool& value)
+{
+  // Cast to the actual TransferFunction subtype.
+  Linear2DTransferFunction *uniform self
+    = (Linear2DTransferFunction *uniform) _self;
+  self->super.preIntegration = value;
+}
+
+export void LTFN2D_precomputePreIntegratedValues(void *uniform _self)
+{
+    // Cast to the actual TransferFunction subtype.
+  Linear2DTransferFunction *uniform self
+    = (Linear2DTransferFunction *uniform) _self;
+  LTFN2D_precomputePreIntegratedColorValues(_self);
+  LTFN2D_precomputePreIntegratedOpacityValues(_self);
+  self->super.preIntegrationComputed = true;
+}
+
+//-----------------------------------------------------------------------------------
+
+export void *uniform LTFN2D_createInstance()
+{
+  // The transfer function.
+  Linear2DTransferFunction *uniform self = uniform new uniform Linear2DTransferFunction;
+
+  self->super.getColorForCoordinate = LTFN2D_getColorForCoordinate;
+  self->super.getOpacityForCoordinate = LTFN2D_getOpacityForCoordinate;
+  
+  // Function to get the interpolated color for a given value.
+  self->super.getColorForValue = LTFN2D_getColorForValue;
+
+  // Function to get the interpolated color for a given value.
+  self->super.getIntegratedColorForValue = LTFN2D_getIntegratedColorForValue;
+
+  // Function to get the interpolated opacity for a given value.
+  self->super.getOpacityForValue = LTFN2D_getOpacityForValue;
+
+  // Function to get the interpolated opacity for a given value.
+  self->super.getIntegratedOpacityForValue = LTFN2D_getIntegratedOpacityForValue;
+
+  // Virtual function to look up the maximum opacity based on an input range.
+  self->super.getMaxOpacityInRange = LTFN2D_getMaxOpacityInRange;
+
+  // Virtual function to look up the min/max opacity based on an input range.
+  self->super.getMinMaxOpacityInRange = LTFN2D_getMinMaxOpacityInRange;
+
+  // Transfer function colors and count.
+  self->colorValues = NULL;
+  self->colorValueCount = 0;
+  self->colorPITable = NULL;
+
+  // Transfer function opacity values and count.
+  self->opacityValues = NULL;
+  self->opacityValueCount = 0;
+  self->opacityPITable = NULL;
+
+  // The default transfer function value range.
+  self->super.valueRange = make_vec2f(0.0f, 1.0f);
+
+  // Freshly baked transfer function.
+  return self;
+}
+
 // ======================================================================== //
 // Exported FUnctions
 // ======================================================================== //
+
 export void LTFN2D_setColorValues(void *uniform _self,
 				  const uniform size_t &count,
 				  const uniform size_t &width,
@@ -539,24 +685,7 @@ export void LTFN2D_setOpacityValues(void *uniform _self,
   self->super.preIntegrationComputed = false;
 }
 
-export void LTFN2D_setPreIntegration(void *uniform _self,
-                                                                const uniform bool& value)
-{
-  // Cast to the actual TransferFunction subtype.
-  Linear2DTransferFunction *uniform self
-    = (Linear2DTransferFunction *uniform) _self;
-  self->super.preIntegration = value;
-}
-
-export void LTFN2D_precomputePreIntegratedValues(void *uniform _self)
-{
-    // Cast to the actual TransferFunction subtype.
-  Linear2DTransferFunction *uniform self
-    = (Linear2DTransferFunction *uniform) _self;
-  LTFN2D_precomputePreIntegratedColorValues(_self);
-  LTFN2D_precomputePreIntegratedOpacityValues(_self);
-  self->super.preIntegrationComputed = true;
-}
+//-----------------------------------------------------------------------------------
 
 export void LTFN2D_setQueryByCoordinate(void *uniform _self, 
 					const uniform bool flag) 
@@ -569,13 +698,13 @@ export void LTFN2D_setQueryByCoordinate(void *uniform _self,
   self->super.queryByCoordinate = flag;
 }
 
-export void LTFN2D_setValueRange(void *uniform _self, 
-				 const uniform vec2f &value) 
+export void LTFN2D_setGradRange(void *uniform _self, 
+				const uniform vec2f &grad) 
 {
   // Cast to the actual type.
   Linear2DTransferFunction *uniform self
     = (Linear2DTransferFunction *uniform) _self;
 
   // Set the transfer function value range.
-  self->gradRange = value;
+  self->gradRange = grad;
 }

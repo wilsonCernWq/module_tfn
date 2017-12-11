@@ -29,16 +29,23 @@ namespace tfn {
     TransferFunction::commit();
 
     // Retrieve the color and opacity values.
-    gradstep = getParam1f("gradientStep", 1.f);
     colorW   = getParam1i("colorWidth",  0);
     colorH   = getParam1i("colorHeight", 0);
     opacityW = getParam1i("opacityWidth",  0);
     opacityH = getParam1i("opacityHeight", 0);
+    // std::cout << "colorW " << colorW << std::endl;
+    // std::cout << "colorH " << colorH << std::endl;
+    // std::cout << "opacityW " << opacityW << std::endl;
+    // std::cout << "opacityH " << opacityH << std::endl;
     colorValues   = getParamData("colors", nullptr);
     opacityValues = getParamData("opacities", nullptr);
     ispc::LTFN2D_setPreIntegration(ispcEquivalent,
-				   getParam1i("preIntegration", 
-					      0));
+				   getParam1i("preIntegration", 0));
+
+    // Retrieve gradient range
+    vec2f gradRange = getParam2f("gradRange", vec2f(0.0f, 1.0f));
+    ispc::LTFN2D_setGradRange(ispcEquivalent,
+			      (const ispc::vec2f &)gradRange);
 
     // Set the color values.
     if (colorValues) {
@@ -55,17 +62,15 @@ namespace tfn {
 				    opacityW, opacityH,
 				    (float *)opacityValues->data);
     }
-    
+
     // Compute preingetration
-    if (getParam1i("preIntegration", 0) && 
-	colorValues && 
-	opacityValues) 
+    if (getParam1i("preIntegration", 0) && colorValues && opacityValues) 
     {
       ispc::LTFN2D_precomputePreIntegratedValues(ispcEquivalent);
     }
 
     // Set flag to query color using sample coordinate
-    ispc::LTFN2D_setQueryByCoordinate(ispcEquivalent, false);
+    ispc::LTFN2D_setQueryByCoordinate(ispcEquivalent, true);
     
     // Notify listeners that the transfer function has changed.
     notifyListenersThatObjectGotChanged();
@@ -79,7 +84,7 @@ namespace tfn {
   void Linear2DTransferFunction::createEquivalentISPC()
   {
     // Debug output
-    std::cout << "#osp Creating Linear2DTransferFunction" << std::endl;
+    std::cout << "[ospray internal] Creating Linear2DTransferFunction" << std::endl;
 
     // The equivalent ISPC transfer function must not exist yet.
     exitOnCondition(ispcEquivalent != nullptr,
