@@ -20,15 +20,15 @@ This new transfer function type can map 1D or 2D array to color and opacity, the
 it requires more parameters. Currently pre-integration is not implemented for this
 transfer function type.
 
-| Type       | Name          | Description                                     |
-|:-----------|:--------------|:------------------------------------------------|
-| vec3f\[\]  | colors        | [data](#data) array of RGB colors               |
-| float\[\]  | opacities     | [data](#data) array of opacities                |
-| int        | colorWidth    | width (scalar axis) of colors                   |
-| int        | colorHeight   | height (gradient axis) of colors                | 
-| int        | opacityWidth  | width (scalar axis) of opacities                |
-| int        | opacityHeight | height (gradient axis) of opacities             | 
-| vec2f      | valueRange    | domain (scalar range) this function maps from   |
-| vec2f      | gradRange     | domain (gradient range) this function maps from |
+| Type       | Name          | Description                                                                             |
+|:-----------|:--------------|:----------------------------------------------------------------------------------------|
+| vec3f\[\]  | colors        | [data](https://github.com/ospray/ospray/blob/master/README.md#data) array of RGB colors |
+| float\[\]  | opacities     | [data](https://github.com/ospray/ospray/blob/master/README.md#data) array of opacities  |
+| int        | colorWidth    | width (scalar axis) of colors                                                           |
+| int        | colorHeight   | height (gradient axis) of colors                                                        | 
+| int        | opacityWidth  | width (scalar axis) of opacities                                                        |
+| int        | opacityHeight | height (gradient axis) of opacities                                                     | 
+| vec2f      | valueRange    | domain (scalar range) this function maps from                                           |
+| vec2f      | gradRange     | domain (gradient range) this function maps from                                         |
 
 : Parameters accepted by the 2D gradient linear transfer function.
