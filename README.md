@@ -22,8 +22,8 @@ transfer function type.
 
 | Type       | Name          | Description                                     |
 |:-----------|:--------------|:------------------------------------------------|
-| vec3f\[ \] | colors        | [data](#data) array of RGB colors               |
-| float\[ \] | opacities     | [data](#data) array of opacities                |
+| vec3f\[\]  | colors        | [data](#data) array of RGB colors               |
+| float\[\]  | opacities     | [data](#data) array of opacities                |
 | int        | colorWidth    | width (scalar axis) of colors                   |
 | int        | colorHeight   | height (gradient axis) of colors                | 
 | int        | opacityWidth  | width (scalar axis) of opacities                |
